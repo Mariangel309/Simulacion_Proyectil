@@ -22,6 +22,8 @@ public class Prueba_NetBeans_A {
         b = 2;
         c = a/b;
         System.out.println(c);
+        // si ahora yo pongo un comentario
+        
     }
     
 }
