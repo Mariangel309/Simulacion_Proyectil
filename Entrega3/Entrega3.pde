@@ -4,8 +4,9 @@ float g = 9.8; // Gravedad
 float h = 50; // Altura inicial
 float t = 0; // Tiempo
 float dt = 0.1; // Incremento de tiempo
-float airResistance = 0; // Resistencia del aire
-
+float cd = 0; // Resistencia del aire
+float vx;
+float vy;
 ArrayList<Float> xPositions = new ArrayList<Float>();  
 ArrayList<Float> yPositions = new ArrayList<Float>();
 
@@ -27,7 +28,7 @@ void setup() {
   // Inicialización de sliders
   velocidadSlider = new Slider(50, height - 160, 150, 20, 0, 100, v0);
   anguloSlider = new Slider(250, height - 160, 150, 20, 0, 90, degrees(theta));
-  resistenciaSlider = new Slider(450, height - 160, 150, 20, 0, 1, airResistance);
+  resistenciaSlider = new Slider(450, height - 160, 150, 20, 0, 1, cd);
 }
 
 // Pantalla de inicio animada
@@ -70,26 +71,72 @@ void drawField() {
   line(100, height - 100, 100, height - 400);
 }
 
+void resetSimulation() {
+  t = 0;
+  xPositions.clear();
+  yPositions.clear();
+
+  // Usar los valores actualizados de los sliders para establecer las velocidades iniciales
+  float v0Updated = velocidadSlider.getValue();
+  float thetaUpdated = radians(anguloSlider.getValue());
+
+  vx = v0Updated * cos(thetaUpdated);  // Velocidad horizontal inicial
+  vy = v0Updated * sin(thetaUpdated);  // Velocidad vertical inicial
+
+  // Agregar la posición inicial (x=0, y=h) al comenzar
+  xPositions.add(0.0);
+  yPositions.add(h);
+  
+  background(200, 220, 255);
+  drawField();
+}
+
 // Actualizar trayectoria del proyectil
 void updateTrajectory() {
   if (startSimulation) {
     float v0Updated = velocidadSlider.getValue();
     float thetaUpdated = radians(anguloSlider.getValue());
-    airResistance = resistenciaSlider.getValue();
+    cd = resistenciaSlider.getValue();
     
-    float xNew = (v0Updated * cos(thetaUpdated) - airResistance * t) * t;
-    float yNew = h + (v0Updated * sin(thetaUpdated) * t - 0.5 * g * t * t);
-    
+    // Asegurarse de que las listas no están vacías
+    if (xPositions.size() == 0 || yPositions.size() == 0) {
+      return;  // No hacer nada si no hay posiciones iniciales
+    }
+
+    // Obtener la última posición
+    float lastX = xPositions.get(xPositions.size() - 1);
+    float lastY = yPositions.get(yPositions.size() - 1);
+
+    if (cd == 0) {
+      // Movimiento sin resistencia al aire
+      vy -= g * dt;  // Gravedad afecta solo a la velocidad vertical
+    } else {
+      // Movimiento con resistencia del aire
+      float ax = -cd * vx;  // Aceleración horizontal por resistencia
+      float ay = -g - cd * vy;  // Aceleración vertical por gravedad y resistencia
+
+      // Actualizar velocidades con las aceleraciones
+      vx += ax * dt;
+      vy += ay * dt;
+    }
+
+    // Actualizar la posición
+    float xNew = lastX + vx * dt;
+    float yNew = lastY + vy * dt;
+
+    // Dibujar el proyectil en la nueva posición
     fill(255, 0, 0);
     noStroke();
     ellipse(100 + xNew, height - 100 - yNew, 15, 15);
-    
-    xPositions.add(100 + xNew);
-    yPositions.add(height - 100 - yNew);
-    
-    t += dt; // Incrementar tiempo
-    
-    if (height - 100 - yNew >= height - 100) {
+
+    // Guardar nuevas posiciones en las listas
+    xPositions.add(xNew);
+    yPositions.add(yNew);
+
+    t += dt;  // Incrementar tiempo
+
+    // Detener la simulación si el proyectil toca el suelo
+    if (yNew <= 0) {
       startSimulation = false;
     }
   }
@@ -133,14 +180,7 @@ void drawIndicators() {
   text("Tiempo de vuelo: " + nf(t, 1, 2) + " s", 10, 90);
 }
 
-// Reiniciar la simulación
-void resetSimulation() {
-  t = 0;
-  xPositions.clear();
-  yPositions.clear();
-  background(200, 220, 255);
-  drawField();
-}
+
 
 // Manejo de clics de mouse
 void mousePressed() {
