@@ -15,6 +15,26 @@ boolean onStartScreen = true;
 
 PFont font;
 
+// Interfaz de inicio
+int buttonX, buttonY, buttonWidth, buttonHeight;
+color buttonColor, textColor;
+String buttonText = "Iniciar";
+PFont buttonFont;
+
+PImage baseballField;
+PImage[] pitcherImages;
+PImage baseballImage;
+
+int currentFrame = 0;
+boolean pitching = false;
+float ballX, ballY;
+float ballSpeedX, ballSpeedY;
+float ballScale = 0.005;
+int frameDelay = 10;
+int frameCounter = 0;
+float pitcherScale = 0.12;
+int screenState = 0;
+
 // Controles de la interfaz
 Slider velocidadSlider, anguloSlider, resistenciaSlider;
 
@@ -29,22 +49,62 @@ void setup() {
   velocidadSlider = new Slider(50, height - 160, 150, 20, 0, 100, v0);
   anguloSlider = new Slider(250, height - 160, 150, 20, 0, 90, degrees(theta));
   resistenciaSlider = new Slider(450, height - 160, 150, 20, 0, 1, cd);
+  
+  // Inicializacion de imagenes
+  baseballField = loadImage("cancha.jpg");
+  baseballField.resize(width, height);
+  
+  pitcherImages = new PImage[3];
+  for (int i = 0; i < pitcherImages.length; i++) {
+    pitcherImages[i] = loadImage("pitcher" + (i+1) + ".png");
+  }
+  
+  baseballImage = loadImage("pelota.png");
+
+  buttonWidth = 150;
+  buttonHeight = 50;
+  buttonX = width / 2 - buttonWidth / 2;
+  buttonY = height - buttonHeight - 20;
+  buttonColor = color(128);
+  textColor = color(255);
+  
+  buttonFont = createFont("Times New Roman", 30);
+  
+  ballX = width / 2;
+  ballY = height / 2 - 100;
+  ballSpeedX = 0;
+  ballSpeedY = 5;
 }
 
 // Pantalla de inicio animada
 void drawStartScreen() {
-  background(50, 150, 255);
-  fill(255);
-  textSize(32);
-  textAlign(CENTER, CENTER);
-  text("Flight Path", width / 2, height / 3);
-  
-  fill(255, 100, 100, 150);
-  ellipse(width / 2 + sin(frameCount * 0.1) * 100, height / 2, 80, 80);
-  
-  fill(0);
-  textSize(20);
-  text("Haz clic para iniciar", width / 2, height / 1.5);
+    if (screenState == 0) {
+    image(baseballField, 0, 0);
+    drawPitcher();
+    drawButton();
+    
+    if (pitching) {
+      if (frameCounter % frameDelay == 0) {
+        currentFrame++;
+        if (currentFrame >= pitcherImages.length) {
+          currentFrame = pitcherImages.length - 1;
+        }
+      }
+      
+      ballY += ballSpeedY;
+      ballScale += 0.01;
+      if (ballY >= height) {
+        pitching = false;
+        currentFrame = 0;
+        screenState = 1;
+      }
+      drawBall();
+      
+      frameCounter++;
+    }
+  } else if (screenState == 1) {
+    onStartScreen = false;
+  }
 }
 
 // Simulación del proyectil
@@ -142,6 +202,28 @@ void updateTrajectory() {
   }
 }
 
+void drawPitcher() {
+  float pitcherWidth = pitcherImages[currentFrame].width * pitcherScale;
+  float pitcherHeight = pitcherImages[currentFrame].height * pitcherScale;
+  float pitcherX = width / 2 - pitcherWidth / 2;
+  float pitcherY = height / 2 - pitcherHeight / 1.2;
+  image(pitcherImages[currentFrame], pitcherX, pitcherY, pitcherWidth, pitcherHeight);
+}
+
+void drawBall() {
+  image(baseballImage, ballX - baseballImage.width * ballScale / 2, ballY - baseballImage.height * ballScale / 2, baseballImage.width * ballScale, baseballImage.height * ballScale);
+}
+
+void drawButton() {
+  fill(buttonColor);
+  rect(buttonX, buttonY, buttonWidth, buttonHeight, 10);
+  
+  fill(textColor);
+  textFont(buttonFont);
+  textAlign(CENTER, CENTER);
+  text(buttonText, buttonX + buttonWidth / 2, buttonY + buttonHeight / 2);
+}
+
 // Dibujar botones de control
 void drawButtons() {
   fill(0, 200, 0);
@@ -185,7 +267,16 @@ void drawIndicators() {
 // Manejo de clics de mouse
 void mousePressed() {
   if (onStartScreen) {
-    onStartScreen = false;
+    
+    if (mouseX > buttonX && mouseX < buttonX + buttonWidth && mouseY > buttonY && mouseY < buttonY + buttonHeight) {
+      if (screenState == 0) {
+        pitching = true;
+        ballY = height / 2 - 100;
+        ballScale = 0.005;
+        currentFrame = 0;
+        frameCounter = 0;
+      }
+    }
   } else {
     // Iniciar o detener simulación según el botón presionado
     if (mouseX > 10 && mouseX < 10 + 100 && mouseY > height - 130 && mouseY < height - 130 + 30) {
@@ -252,6 +343,15 @@ void mouseReleased() {
 
 // Verificar si se hace clic en algún slider para activarlo
 void mousePressedSlider() {
+  if (mouseX > buttonX && mouseX < buttonX + buttonWidth && mouseY > buttonY && mouseY < buttonY + buttonHeight) {
+    if (screenState == 0) {
+      pitching = true;
+      ballY = height / 2 - 100;
+      ballScale = 0.005;
+      currentFrame = 0;
+      frameCounter = 0;
+    }
+  }
   if (mouseX > velocidadSlider.x && mouseX < velocidadSlider.x + velocidadSlider.w &&
       mouseY > velocidadSlider.y && mouseY < velocidadSlider.y + velocidadSlider.h) {
     velocidadSlider.dragging = true;
