@@ -1,3 +1,8 @@
+import processing.sound.*;
+
+SoundFile backgroundMusic1;
+SoundFile startSound;
+
 float v0 = 60; // Velocidad inicial
 float theta = radians(60); // Ángulo de lanzamiento
 float g = 9.8; // Gravedad
@@ -40,6 +45,9 @@ Slider velocidadSlider, anguloSlider, resistenciaSlider;
 
 void setup() {
   size(800, 600);
+  backgroundMusic1 = new SoundFile(this, "background1.mp3");
+  backgroundMusic1.loop();
+  startSound = new SoundFile(this, "initsound.mp3");
   font = createFont("Arial", 16, true);
   textFont(font);
   background(200, 220, 255);
@@ -97,6 +105,7 @@ void drawStartScreen() {
         pitching = false;
         currentFrame = 0;
         screenState = 1;
+        backgroundMusic1.stop();
       }
       drawBall();
       
@@ -286,12 +295,15 @@ void mousePressed() {
         ballScale = 0.005;
         currentFrame = 0;
         frameCounter = 0;
+        
+        startSound.play();
       }
     }
   } else {
     // Iniciar o detener simulación según el botón presionado
     if (mouseX > 10 && mouseX < 10 + 100 && mouseY > height - 130 && mouseY < height - 130 + 30) {
       startSimulation = true;  // Inicia la simulación
+      backgroundMusic1.stop();
       resetSimulation();
     }
     if (mouseX > 120 && mouseX < 120 + 100 && mouseY > height - 130 && mouseY < height - 130 + 30) {
