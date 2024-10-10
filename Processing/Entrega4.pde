@@ -151,7 +151,6 @@ void resetSimulation() {
   drawField();
 }
 
-// Actualizar trayectoria del proyectil
 void updateTrajectory() {
   if (startSimulation) {
     float v0Updated = velocidadSlider.getValue();
@@ -184,11 +183,6 @@ void updateTrajectory() {
     float xNew = lastX + vx * dt;
     float yNew = lastY + vy * dt;
 
-    // Dibujar el proyectil en la nueva posición
-    fill(255, 0, 0);
-    noStroke();
-    ellipse(100 + xNew, height - 100 - yNew, 15, 15);
-
     // Guardar nuevas posiciones en las listas
     xPositions.add(xNew);
     yPositions.add(yNew);
@@ -199,6 +193,23 @@ void updateTrajectory() {
     if (yNew <= 0) {
       startSimulation = false;
     }
+    
+    // Dibujar la trayectoria completa (líneas entre puntos)
+    for (int i = 0; i < xPositions.size() - 1; i++) {
+      float x1 = 100 + xPositions.get(i); // Ajustar posición en x
+      float y1 = height - 100 - yPositions.get(i); // Ajustar posición en y
+      float x2 = 100 + xPositions.get(i + 1);
+      float y2 = height - 100 - yPositions.get(i + 1);
+      
+      stroke(0);
+      strokeWeight(2);
+      line(x1, y1, x2, y2); // Dibujar la línea de trayectoria
+    }
+
+    // Dibujar el proyectil en la nueva posición
+    fill(255, 0, 0);
+    noStroke();
+    ellipse(100 + xNew, height - 100 - yNew, 15, 15);
   }
 }
 
