@@ -2,6 +2,8 @@ import processing.sound.*;
 
 SoundFile backgroundMusic1;
 SoundFile startSound;
+SoundFile buttonstart;
+SoundFile buttonstop;
 
 float v0 = 60; // Velocidad inicial
 float theta = radians(60); // Ángulo de lanzamiento
@@ -14,6 +16,8 @@ float vx;
 float vy;
 ArrayList<Float> xPositions = new ArrayList<Float>();  
 ArrayList<Float> yPositions = new ArrayList<Float>();
+ArrayList<ArrayList<Float>> allXPositions = new ArrayList<ArrayList<Float>>();  // Para almacenar todas las trayectorias de x
+ArrayList<ArrayList<Float>> allYPositions = new ArrayList<ArrayList<Float>>();  // Para almacenar todas las trayectorias de y
 
 boolean startSimulation = false;
 boolean onStartScreen = true;
@@ -48,6 +52,9 @@ void setup() {
   backgroundMusic1 = new SoundFile(this, "background1.mp3");
   backgroundMusic1.loop();
   startSound = new SoundFile(this, "initsound.mp3");
+  buttonstart = new SoundFile(this, "button.mp3");
+  buttonstop = new SoundFile(this, "button.mp3");
+  
   font = createFont("Arial", 16, true);
   textFont(font);
   background(200, 220, 255);
@@ -141,6 +148,11 @@ void drawField() {
 }
 
 void resetSimulation() {
+    if (!xPositions.isEmpty()) {
+    // Guardar la trayectoria actual antes de reiniciar
+    allXPositions.add(new ArrayList<Float>(xPositions));
+    allYPositions.add(new ArrayList<Float>(yPositions));
+  }
   t = 0;
   xPositions.clear();
   yPositions.clear();
@@ -202,6 +214,22 @@ void updateTrajectory() {
     if (yNew <= 0) {
       startSimulation = false;
     }
+        // Dibujar todas las trayectorias anteriores
+    for (int j = 0; j < allXPositions.size(); j++) {
+      ArrayList<Float> trajX = allXPositions.get(j);
+      ArrayList<Float> trajY = allYPositions.get(j);
+      
+      for (int i = 0; i < trajX.size() - 1; i++) {
+        float x1 = 100 + trajX.get(i);
+        float y1 = height - 100 - trajY.get(i);
+        float x2 = 100 + trajX.get(i + 1);
+        float y2 = height - 100 - trajY.get(i + 1);
+        
+        stroke(0, 0, 255);  // Color azul para trayectorias anteriores
+        strokeWeight(1);
+        line(x1, y1, x2, y2);
+      }
+    }
     
     // Dibujar la trayectoria completa (líneas entre puntos)
     for (int i = 0; i < xPositions.size() - 1; i++) {
@@ -210,7 +238,7 @@ void updateTrajectory() {
       float x2 = 100 + xPositions.get(i + 1);
       float y2 = height - 100 - yPositions.get(i + 1);
       
-      stroke(0);
+      stroke(255, 0, 0);
       strokeWeight(2);
       line(x1, y1, x2, y2); // Dibujar la línea de trayectoria
     }
@@ -297,6 +325,7 @@ void mousePressed() {
         frameCounter = 0;
         
         startSound.play();
+        buttonstart.play();
       }
     }
   } else {
@@ -305,9 +334,11 @@ void mousePressed() {
       startSimulation = true;  // Inicia la simulación
       backgroundMusic1.stop();
       resetSimulation();
+      buttonstart.play();
     }
     if (mouseX > 120 && mouseX < 120 + 100 && mouseY > height - 130 && mouseY < height - 130 + 30) {
       startSimulation = false;
+      buttonstop.play();
     }
 
 
