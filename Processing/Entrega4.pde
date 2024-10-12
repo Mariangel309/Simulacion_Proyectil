@@ -1,6 +1,7 @@
 import processing.sound.*;
 
 SoundFile backgroundMusic1;
+SoundFile backgroundMusic2;
 SoundFile startSound;
 SoundFile buttonstart;
 SoundFile buttonstop;
@@ -14,6 +15,8 @@ float dt = 0.1; // Incremento de tiempo
 float cd = 0; // Resistencia del aire
 float vx;
 float vy;
+int resetButtonX, resetButtonY, resetButtonWidth, resetButtonHeight;
+color resetButtonColor, resetTextColor;
 ArrayList<Float> xPositions = new ArrayList<Float>();  
 ArrayList<Float> yPositions = new ArrayList<Float>();
 ArrayList<ArrayList<Float>> allXPositions = new ArrayList<ArrayList<Float>>();  // Para almacenar todas las trayectorias de x
@@ -48,9 +51,10 @@ int screenState = 0;
 Slider velocidadSlider, anguloSlider, resistenciaSlider;
 
 void setup() {
-  size(800, 600);
+  size(980, 700);
   backgroundMusic1 = new SoundFile(this, "background1.mp3");
   backgroundMusic1.loop();
+  backgroundMusic2 = new SoundFile(this, "background2.mp3");
   startSound = new SoundFile(this, "initsound.mp3");
   buttonstart = new SoundFile(this, "button.mp3");
   buttonstop = new SoundFile(this, "button.mp3");
@@ -82,6 +86,14 @@ void setup() {
   buttonY = height - buttonHeight - 20;
   buttonColor = color(128);
   textColor = color(255);
+  
+  // Inicializa el botón de reiniciar
+  resetButtonWidth = 150;
+  resetButtonHeight = 50;
+  resetButtonX = width - resetButtonWidth - 20; // Margen derecho
+  resetButtonY = height - resetButtonHeight - 20; // Margen inferior
+  resetButtonColor = color(200, 100, 100); // Color del botón de reiniciar
+  resetTextColor = color(255); // Color del texto del botón de reiniciar
   
   buttonFont = createFont("Times New Roman", 30);
   
@@ -120,6 +132,7 @@ void drawStartScreen() {
     }
   } else if (screenState == 1) {
     onStartScreen = false;
+    backgroundMusic2.loop();
   }
 }
 
@@ -285,6 +298,13 @@ void drawButtons() {
   rect(120, height - 130, 100, 30);
   fill(255);
   text("Detener", 120 + 100 / 2, height - 130 + 30 / 2);
+  
+    // Dibuja el botón de reiniciar
+  fill(resetButtonColor);
+  rect(resetButtonX, resetButtonY, resetButtonWidth, resetButtonHeight, 10);
+  fill(resetTextColor);
+  textSize(14);
+  text("Reiniciar", resetButtonX + resetButtonWidth / 2, resetButtonY + resetButtonHeight / 2);
 }
 
 // Dibujar sliders para controlar velocidad, ángulo y resistencia
@@ -340,12 +360,39 @@ void mousePressed() {
       startSimulation = false;
       buttonstop.play();
     }
+        // Reiniciar la simulación
+    if (mouseX > resetButtonX && mouseX < resetButtonX + resetButtonWidth && mouseY > resetButtonY && mouseY < resetButtonY + resetButtonHeight) {
+      resetAll(); // Función para reiniciar la simulación
+    }
 
 
     mousePressedSlider();
   }
 }
 
+// Nueva función para reiniciar la simulación
+void resetAll() {
+  // Limpiar trayectorias anteriores
+  allXPositions.clear();
+  allYPositions.clear();
+  
+  // Reiniciar las posiciones y parámetros
+  resetSimulations();
+}
+
+// Función que se mantiene para reiniciar la simulación
+void resetSimulations() {
+  if (!xPositions.isEmpty()) {
+    // Guardar la trayectoria actual antes de reiniciar
+    allXPositions.add(new ArrayList<Float>(xPositions));
+    allYPositions.add(new ArrayList<Float>(yPositions));
+  }
+  t = 0;
+  xPositions.clear();
+  yPositions.clear();
+
+
+}
 
 class Slider {
   float x, y, w, h;
