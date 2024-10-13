@@ -24,14 +24,17 @@ ArrayList<ArrayList<Float>> allYPositions = new ArrayList<ArrayList<Float>>();  
 
 boolean startSimulation = false;
 boolean onStartScreen = true;
+boolean onDocumentation = false;
 
 PFont font;
 
 // Interfaz de inicio
-int buttonX, buttonY, buttonWidth, buttonHeight;
+int buttonX, buttonY, buttonWidth, buttonHeight, buttonDocX, buttonDocY, buttonDocWidth, buttonDocHeight; 
 color buttonColor, textColor;
 String buttonText = "Iniciar";
+String buttonDocText = "Documentacion";
 PFont buttonFont;
+PFont titleFont;
 
 PImage baseballField;
 PImage[] pitcherImages;
@@ -87,6 +90,11 @@ void setup() {
   buttonColor = color(128);
   textColor = color(255);
   
+  buttonDocWidth = 250;
+  buttonDocHeight = 50;
+  buttonDocX = 20;
+  buttonDocY = 20;
+  
   // Inicializa el botón de reiniciar
   resetButtonWidth = 150;
   resetButtonHeight = 50;
@@ -96,11 +104,22 @@ void setup() {
   resetTextColor = color(255); // Color del texto del botón de reiniciar
   
   buttonFont = createFont("Times New Roman", 30);
+  titleFont = createFont("Times New Roman Bold Italic", 56);
   
   ballX = width / 2;
   ballY = height / 2 - 100;
   ballSpeedX = 0;
   ballSpeedY = 5;
+}
+
+// Pantalla de documentacion
+void drawDocumentation(){
+  background(200, 220, 255);
+  drawBackButton();
+  textFont(buttonFont);
+  textAlign(LEFT);
+  fill(0);
+  text("Documentacion en proceso", 50, 50);
 }
 
 // Pantalla de inicio animada
@@ -109,7 +128,10 @@ void drawStartScreen() {
     image(baseballField, 0, 0);
     drawPitcher();
     drawButton();
-    
+    drawDocButton();
+    textAlign(CENTER,CENTER);
+    textFont(titleFont);
+    text("Flight Path", width/2, 50);
     if (pitching) {
       if (frameCounter % frameDelay == 0) {
         currentFrame++;
@@ -141,15 +163,19 @@ void draw() {
   if (onStartScreen) {
     drawStartScreen();
   } else {
+    if (onDocumentation){
+      drawDocumentation();
+    }else{
     background(200, 220, 255);
     drawField();
     updateTrajectory();
     drawButtons();
+    drawBackButton();
     drawSliders();
     drawIndicators();
   }
 }
-
+}
 // Dibujar el campo
 void drawField() {
   fill(50, 150, 50);
@@ -285,6 +311,26 @@ void drawButton() {
   text(buttonText, buttonX + buttonWidth / 2, buttonY + buttonHeight / 2);
 }
 
+void drawDocButton(){
+  fill(buttonColor);
+  rect(buttonDocX, buttonDocY, buttonDocWidth, buttonDocHeight, 10);
+  
+  fill(textColor);
+  textFont(buttonFont);
+  textAlign(CENTER, CENTER);
+  text(buttonDocText, buttonDocX + buttonDocWidth / 2, buttonDocY + buttonDocHeight / 2);
+}
+
+void drawBackButton(){
+ fill(buttonColor);
+ rect(width - 170, 20, 150, 50, 10);
+ 
+ fill(textColor);
+ textFont(buttonFont);
+ textAlign(CENTER, CENTER);
+ text("Volver", width-170+150/2, 45);
+}
+
 // Dibujar botones de control
 void drawButtons() {
   fill(0, 200, 0);
@@ -315,6 +361,7 @@ void drawSliders() {
   
   fill(0);
   textAlign(CENTER, CENTER);
+  textSize(20);
   text("Velocidad (m/s)", velocidadSlider.x + velocidadSlider.w / 2, velocidadSlider.y - 10);
   text("Ángulo (°)", anguloSlider.x + anguloSlider.w / 2, anguloSlider.y - 10);
   text("Resistencia", resistenciaSlider.x + resistenciaSlider.w / 2, resistenciaSlider.y - 10);
@@ -324,6 +371,7 @@ void drawSliders() {
 void drawIndicators() {
   fill(0);
   textAlign(LEFT);
+  textSize(20);
   text("Velocidad inicial: " + nf(velocidadSlider.getValue(), 1, 2) + " m/s", 10, 30);
   text("Ángulo: " + nf(anguloSlider.getValue(), 1, 2) + "°", 10, 50);
   text("Resistencia del aire: " + nf(resistenciaSlider.getValue(), 1, 2), 10, 70);
@@ -343,12 +391,28 @@ void mousePressed() {
         ballScale = 0.005;
         currentFrame = 0;
         frameCounter = 0;
-        
         startSound.play();
         buttonstart.play();
       }
     }
+      if(mouseX > buttonDocX && mouseX < buttonDocX + buttonDocWidth && mouseY > buttonDocY && mouseY < buttonDocY + buttonDocHeight){
+      onDocumentation = true;
+      onStartScreen = false;
+    }
   } else {
+    if(onDocumentation){
+    if(mouseX>width-170 && mouseX < width-20 && mouseY > 20 && mouseY < 70){
+    onDocumentation = false;
+    onStartScreen = true;
+    }
+    }else{
+    if(mouseX>width-170 && mouseX < width-20 && mouseY > 20 && mouseY < 70){
+      onStartScreen = true;
+      screenState = 0;
+      pitching = false;
+      backgroundMusic2.stop(); // Detener la música de fondo de la simulación
+      backgroundMusic1.loop(); // Reproducir la música de la pantalla de inicio
+    }
     // Iniciar o detener simulación según el botón presionado
     if (mouseX > 10 && mouseX < 10 + 100 && mouseY > height - 130 && mouseY < height - 130 + 30) {
       startSimulation = true;  // Inicia la simulación
@@ -369,7 +433,7 @@ void mousePressed() {
     mousePressedSlider();
   }
 }
-
+}
 // Nueva función para reiniciar la simulación
 void resetAll() {
   // Limpiar trayectorias anteriores
@@ -453,6 +517,7 @@ void mousePressedSlider() {
       frameCounter = 0;
     }
   }
+
   if (mouseX > velocidadSlider.x && mouseX < velocidadSlider.x + velocidadSlider.w &&
       mouseY > velocidadSlider.y && mouseY < velocidadSlider.y + velocidadSlider.h) {
     velocidadSlider.dragging = true;
