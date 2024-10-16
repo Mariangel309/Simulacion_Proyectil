@@ -117,9 +117,15 @@ void drawDocumentation(){
   background(200, 220, 255);
   drawBackButton();
   textFont(buttonFont);
-  textAlign(LEFT);
+  textAlign(CENTER);
   fill(0);
-  text("Documentacion en proceso", 50, 50);
+  text("Manual de usuario", width/2, 50);
+  textSize(28);
+  textAlign(LEFT);
+  text("En la pantalla de simulacion, habran 3 sliders que corresponde cada uno \na el angulo de lanzamiento, la velocidad inicial del proyectil y el \ncoeficiente de arrastre a tener en cuenta.", 50, 100);
+  text("El usuario puede ajustar estos valores a voluntad para obtener distintos \ncasos en el simulador, una vez haya ajustado los parametros de su \npreferencia, debera darle al boton de iniciar para ver la trayectoria de la pelota.", 50, 250);
+  text("Las trayectorias de cada simulacion se guardan y se muestran de color azul. \nSi el usuario desea eliminar estas trayectorias anteriores puede \nhacer click en el boton de reiniciar, el cual eliminara todas las trayectorias.", 50, 400);
+  text("El boton detener se usa para detener una simulacion, en caso de que ocurra \nalgun fallo o que la pelota tarde mucho en caer, esto sin embargo no \nafectara la trayectoria que llevaba hasta ese momento, y se guardara de\nigual manera.", 50, 550);
 }
 
 // Pantalla de inicio animada
