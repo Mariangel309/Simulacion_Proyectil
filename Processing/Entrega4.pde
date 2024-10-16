@@ -212,77 +212,70 @@ void resetSimulation() {
 }
 
 void updateTrajectory() {
-  if (startSimulation) {
+    // Dibujar todas las trayectorias anteriores
+  for (int j = 0; j < allXPositions.size(); j++) {
+    ArrayList<Float> trajX = allXPositions.get(j);
+    ArrayList<Float> trajY = allYPositions.get(j);
+    
+    for (int i = 0; i < trajX.size() - 1; i++) {
+      float x1 = 100 + trajX.get(i);
+      float y1 = height - 100 - trajY.get(i);
+      float x2 = 100 + trajX.get(i + 1);
+      float y2 = height - 100 - trajY.get(i + 1);
+      
+      stroke(0, 0, 255);  // Color azul para trayectorias anteriores
+      strokeWeight(1);
+      line(x1, y1, x2, y2);
+      
+    }
+  }
+  
+    if (startSimulation) {
     float v0Updated = velocidadSlider.getValue();
     float thetaUpdated = radians(anguloSlider.getValue());
     cd = resistenciaSlider.getValue();
     
-    // Asegurarse de que las listas no están vacías
     if (xPositions.size() == 0 || yPositions.size() == 0) {
       return;  // No hacer nada si no hay posiciones iniciales
     }
 
-    // Obtener la última posición
     float lastX = xPositions.get(xPositions.size() - 1);
     float lastY = yPositions.get(yPositions.size() - 1);
 
     if (cd == 0) {
-      // Movimiento sin resistencia al aire
-      vy -= g * dt;  // Gravedad afecta solo a la velocidad vertical
+      vy -= g * dt;
     } else {
-      // Movimiento con resistencia del aire
-      float ax = -cd * vx;  // Aceleración horizontal por resistencia
-      float ay = -g - cd * vy;  // Aceleración vertical por gravedad y resistencia
-
-      // Actualizar velocidades con las aceleraciones
+      float ax = -cd * vx;
+      float ay = -g - cd * vy;
       vx += ax * dt;
       vy += ay * dt;
     }
 
-    // Actualizar la posición
     float xNew = lastX + vx * dt;
     float yNew = lastY + vy * dt;
-
-    // Guardar nuevas posiciones en las listas
     xPositions.add(xNew);
     yPositions.add(yNew);
+    t += dt;
 
-    t += dt;  // Incrementar tiempo
-
-    // Detener la simulación si el proyectil toca el suelo
     if (yNew <= 0) {
       startSimulation = false;
-    }
-        // Dibujar todas las trayectorias anteriores
-    for (int j = 0; j < allXPositions.size(); j++) {
-      ArrayList<Float> trajX = allXPositions.get(j);
-      ArrayList<Float> trajY = allYPositions.get(j);
       
-      for (int i = 0; i < trajX.size() - 1; i++) {
-        float x1 = 100 + trajX.get(i);
-        float y1 = height - 100 - trajY.get(i);
-        float x2 = 100 + trajX.get(i + 1);
-        float y2 = height - 100 - trajY.get(i + 1);
-        
-        stroke(0, 0, 255);  // Color azul para trayectorias anteriores
-        strokeWeight(1);
-        line(x1, y1, x2, y2);
-      }
+            // Guardar la trayectoria actual cuando el proyectil toque el suelo
+      allXPositions.add(new ArrayList<Float>(xPositions));
+      allYPositions.add(new ArrayList<Float>(yPositions));
     }
-    
-    // Dibujar la trayectoria completa (líneas entre puntos)
+
     for (int i = 0; i < xPositions.size() - 1; i++) {
-      float x1 = 100 + xPositions.get(i); // Ajustar posición en x
-      float y1 = height - 100 - yPositions.get(i); // Ajustar posición en y
+      float x1 = 100 + xPositions.get(i);
+      float y1 = height - 100 - yPositions.get(i);
       float x2 = 100 + xPositions.get(i + 1);
       float y2 = height - 100 - yPositions.get(i + 1);
       
       stroke(255, 0, 0);
       strokeWeight(2);
-      line(x1, y1, x2, y2); // Dibujar la línea de trayectoria
+      line(x1, y1, x2, y2);
     }
 
-    // Dibujar el proyectil en la nueva posición
     fill(255, 0, 0);
     noStroke();
     ellipse(100 + xNew, height - 100 - yNew, 15, 15);
